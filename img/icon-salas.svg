@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- tela de cinema -->
+  <rect x="8" y="8" width="84" height="46" rx="5" fill="#f0f4ff" stroke="#212529" stroke-width="2.5"/>
+  <!-- conteúdo da tela -->
+  <rect x="14" y="14" width="72" height="34" rx="3" fill="#c8d4f8" opacity="0.6"/>
+  <!-- play na tela -->
+  <polygon points="43,24 43,40 60,32" fill="#212529" opacity="0.4"/>
+
+  <!-- fileira de poltronas frontal -->
+  <rect x="14" y="61" width="16" height="13" rx="3" fill="#212529"/>
+  <rect x="34" y="61" width="16" height="13" rx="3" fill="#212529"/>
+  <rect x="54" y="61" width="16" height="13" rx="3" fill="#212529"/>
+  <rect x="74" y="61" width="14" height="13" rx="3" fill="#212529"/>
+
+  <!-- fileira traseira -->
+  <rect x="6"  y="78" width="16" height="13" rx="3" fill="#343a40"/>
+  <rect x="26" y="78" width="16" height="13" rx="3" fill="#343a40"/>
+  <rect x="46" y="78" width="16" height="13" rx="3" fill="#343a40"/>
+  <rect x="66" y="78" width="16" height="13" rx="3" fill="#343a40"/>
+  <rect x="81" y="78" width="13" height="13" rx="3" fill="#343a40"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <!-- ingresso: forma com entalhe arredondado no meio -->
+  <path d="M10,28 L10,72 Q10,78 16,78 L40,78 Q40,67 50,67 Q60,67 60,78 L84,78 Q90,78 90,72 L90,28 Q90,22 84,22 L60,22 Q60,33 50,33 Q40,33 40,22 L16,22 Q10,22 10,28 Z"
+        fill="#212529"/>
+  <!-- linha pontilhada de separação -->
+  <line x1="50" y1="22" x2="50" y2="78" stroke="#555" stroke-width="1.5" stroke-dasharray="4,4"/>
+  <!-- estrela no lado esquerdo -->
+  <text x="30" y="58" font-family="Arial,sans-serif" font-size="24" text-anchor="middle" fill="#e63946" opacity="0.9">★</text>
+  <!-- barras de texto (lado direito) -->
+  <rect x="57" y="35" width="26" height="6" rx="2" fill="#555" opacity="0.6"/>
+  <rect x="57" y="46" width="20" height="5" rx="2" fill="#555" opacity="0.5"/>
+  <rect x="57" y="56" width="23" height="5" rx="2" fill="#555" opacity="0.5"/>
+  <rect x="57" y="66" width="17" height="5" rx="2" fill="#555" opacity="0.4"/>
+</svg>
