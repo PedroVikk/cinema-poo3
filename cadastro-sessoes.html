@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadastro de Sessões - CineSystem</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="index.html">🎬 CineSystem</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="cadastro-filmes.html">Filmes</a></li>
+        <li class="nav-item"><a class="nav-link" href="cadastro-salas.html">Salas</a></li>
+        <li class="nav-item"><a class="nav-link active" href="cadastro-sessoes.html">Sessões</a></li>
+        <li class="nav-item"><a class="nav-link" href="venda-ingressos.html">Ingressos</a></li>
+        <li class="nav-item"><a class="nav-link" href="sessoes.html">Programação</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <h2 class="mb-4">Cadastro de Sessões</h2>
+
+  <div class="row g-4">
+    <div class="col-md-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form id="formSessao" novalidate>
+
+            <div class="mb-3">
+              <label for="filmeId" class="form-label">Filme</label>
+              <select class="form-select" id="filmeId" required>
+                <option value="">Selecione um filme...</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="salaId" class="form-label">Sala</label>
+              <select class="form-select" id="salaId" required>
+                <option value="">Selecione uma sala...</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="dataHora" class="form-label">Data e Hora</label>
+              <input type="datetime-local" class="form-control" id="dataHora" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="preco" class="form-label">Preço (R$)</label>
+              <input type="number" class="form-control" id="preco" min="0" step="0.01" placeholder="Ex: 25.00" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="idioma" class="form-label">Idioma</label>
+              <select class="form-select" id="idioma" required>
+                <option value="">Selecione...</option>
+                <option value="Dublado">Dublado</option>
+                <option value="Legendado">Legendado</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="formato" class="form-label">Formato</label>
+              <select class="form-select" id="formato" required>
+                <option value="">Selecione...</option>
+                <option value="2D">2D</option>
+                <option value="3D">3D</option>
+              </select>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-dark">Salvar Sessão</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      <h5>Sessões Cadastradas</h5>
+      <div id="listaSessoes"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="text-center py-3 text-muted bg-light mt-5">
+  <small>CineSystem &copy; 2025</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const form = document.getElementById('formSessao');
+
+  function getFilmes() { return JSON.parse(localStorage.getItem('filmes') || '[]'); }
+  function getSalas()  { return JSON.parse(localStorage.getItem('salas')  || '[]'); }
+  function getSessoes(){ return JSON.parse(localStorage.getItem('sessoes') || '[]'); }
+
+  function saveSessoes(sessoes) {
+    try {
+      localStorage.setItem('sessoes', JSON.stringify(sessoes));
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') alert('Limite de armazenamento atingido!');
+    }
+  }
+
+  function carregarSelects() {
+    const filmes = getFilmes();
+    const salas  = getSalas();
+    const selFilme = document.getElementById('filmeId');
+    const selSala  = document.getElementById('salaId');
+
+    selFilme.innerHTML = '<option value="">Selecione um filme...</option>';
+    filmes.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.titulo;
+      selFilme.appendChild(opt);
+    });
+
+    selSala.innerHTML = '<option value="">Selecione uma sala...</option>';
+    salas.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = `${s.nome} (${s.tipo} — ${s.capacidade} lugares)`;
+      selSala.appendChild(opt);
+    });
+
+    if (filmes.length === 0) {
+      selFilme.innerHTML = '<option value="">Nenhum filme cadastrado</option>';
+    }
+    if (salas.length === 0) {
+      selSala.innerHTML = '<option value="">Nenhuma sala cadastrada</option>';
+    }
+  }
+
+  function formatarDataHora(dt) {
+    if (!dt) return '-';
+    const d = new Date(dt);
+    return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  function renderSessoes() {
+    const sessoes = getSessoes();
+    const filmes  = getFilmes();
+    const salas   = getSalas();
+    const container = document.getElementById('listaSessoes');
+
+    if (sessoes.length === 0) {
+      container.innerHTML = '<p class="text-muted">Nenhuma sessão cadastrada ainda.</p>';
+      return;
+    }
+
+    container.innerHTML = sessoes.map(s => {
+      const filme = filmes.find(f => f.id === s.filmeId);
+      const sala  = salas.find(sl => sl.id === s.salaId);
+      return `
+        <div class="card mb-2 shadow-sm">
+          <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <strong>${filme ? filme.titulo : 'Filme removido'}</strong>
+                <span class="badge bg-secondary ms-2">${s.idioma}</span>
+                <span class="badge bg-dark ms-1">${s.formato}</span>
+                <br>
+                <small class="text-muted">
+                  ${sala ? sala.nome : 'Sala removida'} &bull;
+                  ${formatarDataHora(s.dataHora)} &bull;
+                  R$ ${Number(s.preco).toFixed(2)}
+                </small>
+              </div>
+              <button class="btn btn-outline-danger btn-sm ms-2" onclick="excluirSessao('${s.id}')">✕</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function excluirSessao(id) {
+    if (!confirm('Deseja excluir esta sessão?')) return;
+    const sessoes = getSessoes().filter(s => s.id !== id);
+    saveSessoes(sessoes);
+    renderSessoes();
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const filmeId = document.getElementById('filmeId').value;
+    const salaId  = document.getElementById('salaId').value;
+    const dataHora = document.getElementById('dataHora').value;
+    const preco   = document.getElementById('preco').value;
+    const idioma  = document.getElementById('idioma').value;
+    const formato = document.getElementById('formato').value;
+
+    if (!filmeId || !salaId || !dataHora || !preco || !idioma || !formato) {
+      alert('Preencha todos os campos.');
+      return;
+    }
+
+    const sessao = {
+      id: String(Date.now()),
+      filmeId,
+      salaId,
+      dataHora,
+      preco: Number(preco),
+      idioma,
+      formato
+    };
+
+    const sessoes = getSessoes();
+    sessoes.push(sessao);
+    saveSessoes(sessoes);
+
+    form.reset();
+    carregarSelects();
+    renderSessoes();
+  });
+
+  carregarSelects();
+  renderSessoes();
+</script>
+</body>
+</html>

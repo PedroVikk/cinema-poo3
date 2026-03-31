@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Venda de Ingressos - CineSystem</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="index.html">🎬 CineSystem</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="cadastro-filmes.html">Filmes</a></li>
+        <li class="nav-item"><a class="nav-link" href="cadastro-salas.html">Salas</a></li>
+        <li class="nav-item"><a class="nav-link" href="cadastro-sessoes.html">Sessões</a></li>
+        <li class="nav-item"><a class="nav-link active" href="venda-ingressos.html">Ingressos</a></li>
+        <li class="nav-item"><a class="nav-link" href="sessoes.html">Programação</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container py-4">
+  <h2 class="mb-4">Venda de Ingressos</h2>
+
+  <div class="row g-4">
+    <div class="col-md-5">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form id="formIngresso" novalidate>
+
+            <div class="mb-3">
+              <label for="sessaoId" class="form-label">Sessão</label>
+              <select class="form-select" id="sessaoId" required>
+                <option value="">Selecione uma sessão...</option>
+              </select>
+            </div>
+
+            <div id="infoSessao" class="alert alert-info d-none small mb-3"></div>
+
+            <div class="mb-3">
+              <label for="nomeCliente" class="form-label">Nome do Cliente</label>
+              <input type="text" class="form-control" id="nomeCliente" placeholder="Nome completo" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="cpf" class="form-label">CPF</label>
+              <input type="text" class="form-control" id="cpf" placeholder="000.000.000-00" maxlength="14" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="assento" class="form-label">Assento</label>
+              <input type="text" class="form-control" id="assento" placeholder="Ex: A10" required>
+            </div>
+
+            <div class="mb-3">
+              <label for="tipoPagamento" class="form-label">Tipo de Pagamento</label>
+              <select class="form-select" id="tipoPagamento" required>
+                <option value="">Selecione...</option>
+                <option value="Cartão">Cartão</option>
+                <option value="Pix">Pix</option>
+                <option value="Dinheiro">Dinheiro</option>
+              </select>
+            </div>
+
+            <div class="d-grid">
+              <button type="submit" class="btn btn-dark">Confirmar Venda</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-7">
+      <h5>Ingressos Vendidos</h5>
+      <div id="listaIngressos"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="text-center py-3 text-muted bg-light mt-5">
+  <small>CineSystem &copy; 2025</small>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const form = document.getElementById('formIngresso');
+
+  function getFilmes()   { return JSON.parse(localStorage.getItem('filmes')   || '[]'); }
+  function getSalas()    { return JSON.parse(localStorage.getItem('salas')    || '[]'); }
+  function getSessoes()  { return JSON.parse(localStorage.getItem('sessoes')  || '[]'); }
+  function getIngressos(){ return JSON.parse(localStorage.getItem('ingressos')|| '[]'); }
+
+  function saveIngressos(ingressos) {
+    try {
+      localStorage.setItem('ingressos', JSON.stringify(ingressos));
+    } catch (e) {
+      if (e.name === 'QuotaExceededError') alert('Limite de armazenamento atingido!');
+    }
+  }
+
+  function formatarDataHora(dt) {
+    if (!dt) return '-';
+    const d = new Date(dt);
+    return d.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  function carregarSessoes(preSelectId) {
+    const sessoes = getSessoes();
+    const filmes  = getFilmes();
+    const salas   = getSalas();
+    const sel = document.getElementById('sessaoId');
+
+    sel.innerHTML = '<option value="">Selecione uma sessão...</option>';
+
+    if (sessoes.length === 0) {
+      sel.innerHTML = '<option value="">Nenhuma sessão disponível</option>';
+      return;
+    }
+
+    sessoes.forEach(s => {
+      const filme = filmes.find(f => f.id === s.filmeId);
+      const sala  = salas.find(sl => sl.id === s.salaId);
+      const opt = document.createElement('option');
+      opt.value = s.id;
+      opt.textContent = `${filme ? filme.titulo : '?'} — ${sala ? sala.nome : '?'} — ${formatarDataHora(s.dataHora)}`;
+      if (preSelectId && s.id === preSelectId) opt.selected = true;
+      sel.appendChild(opt);
+    });
+
+    if (preSelectId) mostrarInfoSessao(preSelectId);
+  }
+
+  function mostrarInfoSessao(sessaoId) {
+    const sessoes = getSessoes();
+    const filmes  = getFilmes();
+    const salas   = getSalas();
+    const infoBox = document.getElementById('infoSessao');
+
+    if (!sessaoId) { infoBox.classList.add('d-none'); return; }
+
+    const s = sessoes.find(s => s.id === sessaoId);
+    if (!s) { infoBox.classList.add('d-none'); return; }
+
+    const filme = filmes.find(f => f.id === s.filmeId);
+    const sala  = salas.find(sl => sl.id === s.salaId);
+
+    infoBox.classList.remove('d-none');
+    infoBox.innerHTML = `
+      <strong>${filme ? filme.titulo : '?'}</strong><br>
+      Sala: ${sala ? sala.nome : '?'} &bull; ${s.idioma} &bull; ${s.formato}<br>
+      ${formatarDataHora(s.dataHora)} &bull; <strong>R$ ${Number(s.preco).toFixed(2)}</strong>
+    `;
+  }
+
+  document.getElementById('sessaoId').addEventListener('change', function () {
+    mostrarInfoSessao(this.value);
+  });
+
+  function renderIngressos() {
+    const ingressos = getIngressos();
+    const sessoes   = getSessoes();
+    const filmes    = getFilmes();
+    const container = document.getElementById('listaIngressos');
+
+    if (ingressos.length === 0) {
+      container.innerHTML = '<p class="text-muted">Nenhum ingresso vendido ainda.</p>';
+      return;
+    }
+
+    container.innerHTML = ingressos.map(ing => {
+      const sessao = sessoes.find(s => s.id === ing.sessaoId);
+      const filme  = sessao ? filmes.find(f => f.id === sessao.filmeId) : null;
+      return `
+        <div class="card mb-2 shadow-sm">
+          <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <strong>${ing.nomeCliente}</strong>
+                <span class="badge bg-secondary ms-2">${ing.assento}</span>
+                <span class="badge bg-dark ms-1">${ing.tipoPagamento}</span>
+                <br>
+                <small class="text-muted">
+                  ${filme ? filme.titulo : 'Sessão removida'} &bull;
+                  ${sessao ? formatarDataHora(sessao.dataHora) : '-'} &bull;
+                  CPF: ${ing.cpf}
+                </small>
+              </div>
+              <button class="btn btn-outline-danger btn-sm ms-2" onclick="excluirIngresso('${ing.id}')">✕</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function excluirIngresso(id) {
+    if (!confirm('Deseja cancelar este ingresso?')) return;
+    const ingressos = getIngressos().filter(i => i.id !== id);
+    saveIngressos(ingressos);
+    renderIngressos();
+  }
+
+  // Pré-selecionar sessão via parâmetro de URL (?sessaoId=...)
+  const params = new URLSearchParams(window.location.search);
+  const sessaoIdParam = params.get('sessaoId');
+  carregarSessoes(sessaoIdParam);
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    const sessaoId     = document.getElementById('sessaoId').value;
+    const nomeCliente  = document.getElementById('nomeCliente').value.trim();
+    const cpf          = document.getElementById('cpf').value.trim();
+    const assento      = document.getElementById('assento').value.trim();
+    const tipoPagamento = document.getElementById('tipoPagamento').value;
+
+    if (!sessaoId || !nomeCliente || !cpf || !assento || !tipoPagamento) {
+      alert('Preencha todos os campos.');
+      return;
+    }
+
+    // Verificar se assento já foi vendido na mesma sessão
+    const ingressos = getIngressos();
+    const assentoOcupado = ingressos.some(
+      i => i.sessaoId === sessaoId && i.assento.toUpperCase() === assento.toUpperCase()
+    );
+    if (assentoOcupado) {
+      alert('Este assento já está ocupado nesta sessão!');
+      return;
+    }
+
+    const ingresso = {
+      id: String(Date.now()),
+      sessaoId,
+      nomeCliente,
+      cpf,
+      assento: assento.toUpperCase(),
+      tipoPagamento
+    };
+
+    ingressos.push(ingresso);
+    saveIngressos(ingressos);
+
+    alert(`Ingresso confirmado!\nAssento: ${ingresso.assento}\nCliente: ${ingresso.nomeCliente}`);
+    form.reset();
+    document.getElementById('infoSessao').classList.add('d-none');
+    carregarSessoes(null);
+    renderIngressos();
+  });
+
+  renderIngressos();
+</script>
+</body>
+</html>
